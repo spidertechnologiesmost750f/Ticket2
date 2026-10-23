@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ticketmaster - Buy Official Tickets</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --tm-blue: #026cdf;
+            --tm-dark-blue: #0150a6;
+            --tm-black: #1f262d;
+            --tm-grey: #f2f2f2;
+            --tm-dark-grey: #666666;
+            --tm-border: #e2e2e2;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #f7f9fa; color: #1f262d; font-size: 14px; line-height: 1.4; padding-bottom: 40px; }
+        .blur-mode .order-ref-no { filter: blur(6px); user-select: none; transition: filter 0.3s; cursor: pointer; }
+        .blur-mode .order-ref-no:hover { filter: blur(0px); }
+        .nav-bar { background-color: var(--tm-blue); color: white; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .flag-btn { display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.15); border: none; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 13px; cursor: pointer; }
+        .tm-logo { height: 22px; cursor: pointer; }
+        .user-menu-wrapper { position: relative; }
+        .user-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 4px; display: flex; align-items: center; gap: 6px; }
+        .user-dropdown { position: absolute; right: 0; top: 100%; background: white; color: #333; border-radius: 6px; width: 200px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: none; flex-direction: column; z-index: 1001; overflow: hidden; margin-top: 8px; }
+        .user-dropdown.active { display: flex; }
+        .dropdown-header { padding: 12px 16px; background: #f8f9fa; border-bottom: 1px solid var(--tm-border); font-weight: bold; font-size: 13px; color: var(--tm-blue); }
+        .user-dropdown a { padding: 12px 16px; color: #333; text-decoration: none; font-size: 14px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; }
+        .user-dropdown a:hover { background: #f5f8fc; color: var(--tm-blue); }
+        .search-container { background-color: var(--tm-blue); padding: 0 16px 14px 16px; }
+        .search-box { display: flex; background: white; border-radius: 4px; overflow: hidden; height: 42px; }
+        .search-box input { flex: 1; border: none; padding: 0 12px; font-size: 15px; outline: none; }
+        .search-box button { background: none; border: none; padding: 0 14px; color: var(--tm-blue); font-size: 16px; cursor: pointer; }
+        .tabs-header { display: flex; background: white; border-bottom: 1px solid var(--tm-border); }
+        .tab-btn { flex: 1; text-align: center; padding: 12px 0; font-size: 14px; font-weight: 600; color: #666; border-bottom: 3px solid transparent; cursor: pointer; }
+        .tab-btn.active { color: var(--tm-blue); border-bottom-color: var(--tm-blue); }
+        .page-content { display: none; padding: 16px; max-width: 600px; margin: 0 auto; }
+        .page-content.active { display: block; }
+        .banner-hero { width: 100%; height: 180px; object-fit: cover; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .card { background: white; border-radius: 8px; border: 1px solid var(--tm-border); margin-bottom: 16px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .card-title { font-size: 16px; font-weight: bold; margin-bottom: 12px; color: #111; display: flex; justify-content: space-between; align-items: center; }
+        .notice-box { background: #eef5fc; border-left: 4px solid var(--tm-blue); padding: 12px; border-radius: 0 6px 6px 0; margin-bottom: 16px; font-size: 13px; color: #2c3e50; line-height: 1.5; }
+        .field-group { margin-bottom: 16px; }
+        .field-label { font-size: 12px; color: #666; text-transform: uppercase; font-weight: bold; margin-bottom: 4px; }
+        .field-value { font-size: 15px; color: #111; word-break: break-all; }
+        .ticket-item { background: white; border: 1px solid var(--tm-border); border-radius: 8px; margin-bottom: 16px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+        .ticket-img { width: 100%; height: 140px; object-fit: cover; }
+        .ticket-body { padding: 14px; }
+        .ticket-date { color: #d9381e; font-weight: bold; font-size: 13px; margin-bottom: 4px; }
+        .ticket-title { font-size: 16px; font-weight: bold; color: #111; margin-bottom: 6px; }
+        .ticket-venue { font-size: 13px; color: #555; margin-bottom: 12px; }
+        .seat-badge { background: #f0f4f8; border: 1px solid #d0dbe5; padding: 8px 12px; border-radius: 6px; font-weight: 600; font-size: 13px; display: inline-block; margin-bottom: 12px; color: #1f262d; }
+        .price-row { display: flex; justify-content: space-between; font-size: 13px; color: #555; margin-bottom: 4px; }
+        .price-row.total { font-size: 15px; font-weight: bold; color: #111; border-top: 1px solid #eee; padding-top: 6px; margin-top: 6px; }
+        .order-badge { background: #eaf2fb; color: var(--tm-blue); padding: 6px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-top: 10px; display: inline-block; }
+        .btn-primary { background: var(--tm-blue); color: white; border: none; width: 100%; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; text-decoration: none; display: block; margin-top: 12px; }
+        .btn-primary:active { background: var(--tm-dark-blue); }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: flex-end; z-index: 2000; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: white; width: 100%; max-width: 600px; max-height: 90vh; border-radius: 16px 16px 0 0; overflow-y: auto; padding: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.2); animation: slideUp 0.25s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--tm-border); padding-bottom: 12px; margin-bottom: 16px; }
+        .modal-header h3 { font-size: 18px; color: var(--tm-blue); }
+        .close-btn { background: none; border: none; font-size: 22px; color: #666; cursor: pointer; }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 12px; font-weight: bold; color: #444; margin-bottom: 4px; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid var(--tm-border); border-radius: 6px; font-size: 14px; }
+        .footer { background: #1f262d; color: #8c9ba5; padding: 24px 16px; text-align: center; font-size: 12px; margin-top: 30px; }
+        .footer a { color: #8c9ba5; text-decoration: none; margin: 0 8px; }
+    </style>
+</head>
+<body>
+    <div class="nav-bar">
+        <div class="nav-left">
+            <button class="flag-btn" id="countryFlagBtn" onclick="openHelpEditor()">
+                <span id="flagEmoji">🇸🇬</span> <span id="countryCode">SG</span>
+            </button>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a6/Ticketmaster_Logo.svg" alt="Ticketmaster" class="tm-logo" onclick="switchTab('home')">
+        </div>
+        <div class="user-menu-wrapper">
+            <button class="user-btn" onclick="toggleUserDropdown()"><i class="fa-solid fa-circle-user"></i></button>
+            <div class="user-dropdown" id="userDropdown">
+                <div class="dropdown-header" id="menuUserName">Coelho Adrianna</div>
+                <a href="#" onclick="switchTab('profile'); toggleUserDropdown();"><i class="fa-solid fa-user"></i> My Profile</a>
+                <a href="#" onclick="switchTab('tickets'); toggleUserDropdown();"><i class="fa-solid fa-ticket"></i> My Tickets</a>
+                <a href="#" onclick="openHelpEditor(); toggleUserDropdown();"><i class="fa-solid fa-circle-question"></i> Help</a>
+                <a href="#" onclick="toggleUserDropdown();"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="search-container">
+        <div class="search-box">
+            <input type="text" placeholder="Search by Event, Artist or Venue">
+            <button><i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
+    </div>
+
+    <div class="tabs-header">
+        <div class="tab-btn active" id="tabHome" onclick="switchTab('home')">Explore</div>
+        <div class="tab-btn" id="tabTickets" onclick="switchTab('tickets')">My Tickets</div>
+        <div class="tab-btn" id="tabProfile" onclick="switchTab('profile')">My Profile</div>
+    </div>
+
+    <div id="pageHome" class="page-content active">
+        <img id="homeBannerImg" src="https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1000&q=80" class="banner-hero" alt="Featured Event">
+        <div class="card">
+            <div class="card-title">Trending Events</div>
+            <div id="homeEventsList"></div>
+        </div>
+    </div>
+
+    <div id="pageTickets" class="page-content">
+        <div id="ticketsContainer"></div>
+    </div>
+
+    <div id="pageProfile" class="page-content">
+        <div class="notice-box">
+            Please fill in the correct information in order to secure your rights of shopping. Your data will be used when tickets/merchandise are delivered to your address or picked up at the venue.
+        </div>
+        <div class="card">
+            <div class="card-title">
+                <span>My Account</span>
+                <button onclick="openHelpEditor()" style="background:none; border:none; color:var(--tm-blue); cursor:pointer; font-size:13px;"><i class="fa-solid fa-circle-question"></i> Help</button>
+            </div>
+            <div class="field-group">
+                <div class="field-label">Name</div>
+                <div class="field-value" id="profName">Coelho Adrianna</div>
+            </div>
+            <div class="field-group">
+                <div class="field-label">Email</div>
+                <div class="field-value" id="profEmail">yirilim029@gmail.com</div>
+            </div>
+            <div class="field-group">
+                <div class="field-label">Phone Number</div>
+                <div class="field-value" id="profPhone">+65 9123 4567</div>
+            </div>
+            <div class="field-group">
+                <div class="field-label">Delivery Address</div>
+                <div class="field-value" id="profAddress">10 Bayfront Ave, Marina Bay Sands, Singapore 018956</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-circle-question"></i> Help & Settings</h3>
+                <button class="close-btn" onclick="closeHelpEditor()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Market / Country Flag Emoji</label>
+                <input type="text" id="editFlag" class="form-control" value="🇸🇬">
+            </div>
+            <div class="form-group">
+                <label>Country Code (e.g. SG, US, UK)</label>
+                <input type="text" id="editCountry" class="form-control" value="SG">
+            </div>
+            <div class="form-group">
+                <label>Currency Symbol</label>
+                <input type="text" id="editCurrency" class="form-control" value="$">
+            </div>
+            <div class="form-group">
+                <label>Blur Order / Reference Numbers</label>
+                <select id="editBlur" class="form-control" onchange="toggleBlurSetting(this.value)">
+                    <option value="false">Off (Show Order Numbers)</option>
+                    <option value="true">On (Blur Order Numbers for Privacy)</option>
+                </select>
+            </div>
+            <hr style="margin: 16px 0; border: none; border-top: 1px solid #eee;">
+            <div class="form-group">
+                <label>User Full Name</label>
+                <input type="text" id="editName" class="form-control" value="Coelho Adrianna">
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="text" id="editEmail" class="form-control" value="yirilim029@gmail.com">
+            </div>
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="text" id="editPhone" class="form-control" value="+65 9123 4567">
+            </div>
+            <div class="form-group">
+                <label>Delivery Address</label>
+                <input type="text" id="editAddress" class="form-control" value="10 Bayfront Ave, Marina Bay Sands, Singapore 018956">
+            </div>
+            <hr style="margin: 16px 0; border: none; border-top: 1px solid #eee;">
+            <h4 style="margin-bottom: 10px; color: var(--tm-blue);">Ticket / Event Details</h4>
+            <div class="form-group">
+                <label>Event Image Upload</label>
+                <input type="file" id="editImgFile" class="form-control" accept="image/*" onchange="handleImageUpload(event)">
+            </div>
+            <div class="form-group">
+                <label>Or Event Image URL</label>
+                <input type="text" id="editImgUrl" class="form-control" value="https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1000&q=80">
+            </div>
+            <div class="form-group">
+                <label>Event Title</label>
+                <input type="text" id="editEventTitle" class="form-control" value="EXO PLANET #6 - EXHOrizon in SINGAPORE">
+            </div>
+            <div class="form-group">
+                <label>Event Date & Time</label>
+                <input type="text" id="editEventDate" class="form-control" value="26 Jul 2026 (Sun) | 06:00 pm">
+            </div>
+            <div class="form-group">
+                <label>Venue Location</label>
+                <input type="text" id="editVenue" class="form-control" value="Singapore Indoor Stadium">
+            </div>
+            <div class="form-group">
+                <label>Seat Info (Section / Row / Seat)</label>
+                <input type="text" id="editSeat" class="form-control" value="231 - Row 2 Seat 5">
+            </div>
+            <div class="form-group">
+                <label>Ticket Tier Info</label>
+                <input type="text" id="editTicketTier" class="form-control" value="VIP SEATED (Live Nation Presale)">
+            </div>
+            <div class="form-group">
+                <label>Price ($)</label>
+                <input type="number" id="editPrice" class="form-control" value="388.00">
+            </div>
+            <div class="form-group">
+                <label>Booking Fee ($)</label>
+                <input type="number" id="editFee" class="form-control" value="10.00">
+            </div>
+            <div class="form-group">
+                <label>Order Number / Reference Number</label>
+                <input type="text" id="editOrderNo" class="form-control" value="18492255">
+            </div>
+            <button class="btn-primary" onclick="saveAllData()">Save & Apply Changes</button>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p style="margin-bottom: 8px;">
+            <a href="#" onclick="openHelpEditor()">Help</a> | 
+            <a href="#">Customer Care</a> | 
+            <a href="#">Terms of Use</a> | 
+            <a href="#">Privacy Policy</a>
+        </p>
+        <p>© 1999-2026 Ticketmaster.<span id="domainFooter">sg</span>. All rights reserved.</p>
+    </div>
+
+    <script>
+        let appState = JSON.parse(localStorage.getItem('tm_app_state')) || {
+            flag: "🇸🇬",
+            country: "SG",
+            currency: "$",
+            blur: false,
+            name: "Coelho Adrianna",
+            email: "yirilim029@gmail.com",
+            phone: "+65 9123 4567",
+            address: "10 Bayfront Ave, Marina Bay Sands, Singapore 018956",
+            eventImg: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1000&q=80",
+            eventTitle: "EXO PLANET #6 - EXHOrizon in SINGAPORE",
+            eventDate: "26 Jul 2026 (Sun) | 06:00 pm",
+            venue: "Singapore Indoor Stadium",
+            seat: "231 - Row 2 Seat 5",
+            tier: "VIP SEATED (Live Nation Presale)",
+            price: 388.00,
+            fee: 10.00,
+            orderNo: "18492255"
+        };
+
+        function init() {
+            render();
+        }
+
+        function render() {
+            document.getElementById('flagEmoji').innerText = appState.flag;
+            document.getElementById('countryCode').innerText = appState.country;
+            document.getElementById('domainFooter').innerText = appState.country.toLowerCase();
+            document.getElementById('menuUserName').innerText = appState.name;
+
+            document.getElementById('profName').innerText = appState.name;
+            document.getElementById('profEmail').innerText = appState.email;
+            document.getElementById('profPhone').innerText = appState.phone;
+            document.getElementById('profAddress').innerText = appState.address;
+
+            document.getElementById('homeBannerImg').src = appState.eventImg;
+
+            if (appState.blur) {
+                document.body.classList.add('blur-mode');
+            } else {
+                document.body.classList.remove('blur-mode');
+            }
+
+            const subtotal = (parseFloat(appState.price) + parseFloat(appState.fee)).toFixed(2);
+
+            document.getElementById('homeEventsList').innerHTML = `
+                <div class="ticket-item">
+                    <img src="${appState.eventImg}" class="ticket-img">
+                    <div class="ticket-body">
+                        <div class="ticket-date">${appState.eventDate}</div>
+                        <div class="ticket-title">${appState.eventTitle}</div>
+                        <div class="ticket-venue">${appState.venue}</div>
+                        <button class="btn-primary" onclick="switchTab('tickets')">View Tickets</button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('ticketsContainer').innerHTML = `
+                <div class="ticket-item">
+                    <img src="${appState.eventImg}" class="ticket-img">
+                    <div class="ticket-body">
+                        <div class="ticket-date">${appState.eventDate}</div>
+                        <div class="ticket-title">${appState.eventTitle}</div>
+                        <div class="ticket-venue">${appState.venue}</div>
+                        <div class="seat-badge"><i class="fa-solid fa-chair"></i> ${appState.seat}</div>
+                        <div class="price-row"><span>Ticket Price (${appState.tier})</span><span>${appState.currency}${parseFloat(appState.price).toFixed(2)}</span></div>
+                        <div class="price-row"><span>Booking Fee</span><span>${appState.currency}${parseFloat(appState.fee).toFixed(2)}</span></div>
+                        <div class="price-row total"><span>Subtotal</span><span>${appState.currency}${subtotal}</span></div>
+                        <div class="order-badge">Order No: <span class="order-ref-no">${appState.orderNo}</span></div>
+                        <button class="btn-primary" style="margin-top:16px;">Print-at-Home</button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('editFlag').value = appState.flag;
+            document.getElementById('editCountry').value = appState.country;
+            document.getElementById('editCurrency').value = appState.currency;
+            document.getElementById('editBlur').value = appState.blur.toString();
+            document.getElementById('editName').value = appState.name;
+            document.getElementById('editEmail').value = appState.email;
+            document.getElementById('editPhone').value = appState.phone;
+            document.getElementById('editAddress').value = appState.address;
+            document.getElementById('editImgUrl').value = appState.eventImg;
+            document.getElementById('editEventTitle').value = appState.eventTitle;
+            document.getElementById('editEventDate').value = appState.eventDate;
+            document.getElementById('editVenue').value = appState.venue;
+            document.getElementById('editSeat').value = appState.seat;
+            document.getElementById('editTicketTier').value = appState.tier;
+            document.getElementById('editPrice').value = appState.price;
+            document.getElementById('editFee').value = appState.fee;
+            document.getElementById('editOrderNo').value = appState.orderNo;
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+
+            if(tab === 'home') {
+                document.getElementById('tabHome').classList.add('active');
+                document.getElementById('pageHome').classList.add('active');
+            } else if(tab === 'tickets') {
+                document.getElementById('tabTickets').classList.add('active');
+                document.getElementById('pageTickets').classList.add('active');
+            } else if(tab === 'profile') {
+                document.getElementById('tabProfile').classList.add('active');
+                document.getElementById('pageProfile').classList.add('active');
+            }
+        }
+
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        function openHelpEditor() {
+            document.getElementById('helpModal').classList.add('active');
+        }
+
+        function closeHelpEditor() {
+            document.getElementById('helpModal').classList.remove('active');
+        }
+
+        function toggleBlurSetting(val) {
+            appState.blur = (val === 'true');
+        }
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    appState.eventImg = evt.target.result;
+                    document.getElementById('editImgUrl').value = evt.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveAllData() {
+            appState.flag = document.getElementById('editFlag').value;
+            appState.country = document.getElementById('editCountry').value;
+            appState.currency = document.getElementById('editCurrency').value;
+            appState.blur = (document.getElementById('editBlur').value === 'true');
+            appState.name = document.getElementById('editName').value;
+            appState.email = document.getElementById('editEmail').value;
+            appState.phone = document.getElementById('editPhone').value;
+            appState.address = document.getElementById('editAddress').value;
+            appState.eventImg = document.getElementById('editImgUrl').value;
+            appState.eventTitle = document.getElementById('editEventTitle').value;
+            appState.eventDate = document.getElementById('editEventDate').value;
+            appState.venue = document.getElementById('editVenue').value;
+            appState.seat = document.getElementById('editSeat').value;
+            appState.tier = document.getElementById('editTicketTier').value;
+            appState.price = document.getElementById('editPrice').value;
+            appState.fee = document.getElementById('editFee').value;
+            appState.orderNo = document.getElementById('editOrderNo').value;
+
+            localStorage.setItem('tm_app_state', JSON.stringify(appState));
+            render();
+            closeHelpEditor();
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
